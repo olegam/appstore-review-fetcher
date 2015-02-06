@@ -1,0 +1,26 @@
+{
+  "name": "appstore-review-fetcher",
+  "version": "0.0.1",
+  "description": "An app to fetch App Store reviews from Apples RSS feeds and map it into an IFTTT friendly format including number of stars etc.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.11.2"
+  },
+  "engines": {
+    "node": "0.10.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/olegam/appstore-review-fetcher"
+  },
+  "keywords": [
+    "appstore",
+    "app",
+    "store",
+    "Apple"
+  ],
+  "license": "MIT"
+}
