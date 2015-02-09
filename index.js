@@ -2,9 +2,9 @@ var express = require('express');
 var app = express();
 var spider = require('rssspider');
 var step = require('step');
+var RSS = require('rss');
 
 app.set('port', (process.env.PORT || 5000));
-app.use(express.static(__dirname + '/public'));
 
 // http://itunes.apple.com/dk/rss/customerreviews/id=671759668/sortBy=mostRecent/xml
 
@@ -13,6 +13,7 @@ app.use(express.static(__dirname + '/public'));
 app.get('/reviews', function(request, response) {
 	var apps = (request.query.apps || '671759668').split(',');
 	var countries = (request.query.countries || 'dk').split(',');
+	var format = request.query.format || 'json';
 	console.log('apps:', apps, 'countries:', countries);
 
 	var all_reviews = [];
@@ -25,7 +26,8 @@ app.get('/reviews', function(request, response) {
 					var url = 'http://itunes.apple.com/' + country + '/rss/customerreviews/id=' + app_id + '/sortBy=mostRecent/xml';
 					var that = group();
 					console.log('Requesting', url);
-					var spider_promise = spider.fetchRss(url, ['title', 'im:rating', 'date', 'description', 'author', 'im:version', 'im:votecount', 'im:votesum']);
+					var rss_fields = ['title', 'im:rating', 'date', 'description', 'author', 'im:version', 'im:votecount', 'im:votesum', 'guid'];
+					var spider_promise = spider.fetchRss(url, rss_fields);
 					spider_promise.error(function (err) {
 						console.log('iTunes request error:', err);
 						that(err, null);
@@ -57,8 +59,8 @@ app.get('/reviews', function(request, response) {
 							return review;
 						});
 
-						all_reviews.push(reviews);
-//						console.log(reviews);
+						console.log(JSON.stringify(reviews))
+						all_reviews = all_reviews.concat(reviews);
 						that(null, null);
 					});
 				});
@@ -70,15 +72,32 @@ app.get('/reviews', function(request, response) {
 				response.send({error: err.toString()}, 500);
 				return;
 			}
-			console.log('Returning results...', all_reviews.length, apps, countries);
-			response.send({reviews: all_reviews});
+			console.log('Returning results...', format, all_reviews.length, apps, countries);
+			if (format === 'rss') {
+				var feed = new RSS({title: 'App Store Reviews', feed_url: '', site_url: ''});
+				all_reviews.forEach(function (item) {
+
+					var stars =  '';
+					for (var i=0; i< item.rating; i++) {
+						stars = stars + '⭐️';
+					}
+					var rss_item = {
+						title: stars + ' ' + item.app_name + 'review by ' + item.author + ': ' + item.title,
+						description: item.description + ' [' + item.country + ']',
+						url: '',
+						guid: item.guid
+					};
+					console.log('Adding', JSON.stringify(rss_item), JSON.stringify(item));
+					feed.item(rss_item);
+				});
+				var xml = feed.xml({indent: true});
+				response.send(xml);
+
+			} else {
+				response.send({reviews: all_reviews});
+			}
 		}
 	);
-
-
-
-
-
 });
 
 app.listen(app.get('port'), function() {
