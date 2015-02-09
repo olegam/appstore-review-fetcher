@@ -7,7 +7,9 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.11.2"
+    "express": "^4.11.2",
+    "rssspider": "^1.0.1",
+    "step": "0.0.5"
   },
   "engines": {
     "node": "0.10.x"
