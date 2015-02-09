@@ -59,7 +59,6 @@ app.get('/reviews', function(request, response) {
 							return review;
 						});
 
-						console.log(JSON.stringify(reviews))
 						all_reviews = all_reviews.concat(reviews);
 						that(null, null);
 					});
@@ -87,10 +86,10 @@ app.get('/reviews', function(request, response) {
 						url: '',
 						guid: item.guid
 					};
-					console.log('Adding', JSON.stringify(rss_item), JSON.stringify(item));
 					feed.item(rss_item);
 				});
 				var xml = feed.xml({indent: true});
+				response.append('Content-Type', 'application/rss+xml');
 				response.send(xml);
 
 			} else {
